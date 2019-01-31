@@ -7,35 +7,21 @@ extern crate relm_attributes;
 
 use relm_attributes::widget;
 
-use gtk::{
-    BoxExt,
-    Button,
-    ButtonExt,
-    ButtonBoxExt,
-    RadioButtonExt,
-    ContainerExt,
-    Inhibit,
-    FrameExt,
-    Label,
-    LabelExt,
-    OrientableExt,
-    ToggleButtonExt,
-    WidgetExt,
-    Window,
-    WindowType,
-
-};
 use gtk::Orientation::*;
-use relm::{Relm, Update, Widget};
+use gtk::{
+    BoxExt, Button, ButtonBoxExt, ButtonExt, ContainerExt, FrameExt, GtkWindowExt, Inhibit, Label,
+    LabelExt, OrientableExt, RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt, Window,
+    WindowType,
+};
 use relm::{Component, ContainerWidget};
+use relm::{Relm, Update, Widget};
 
-mod usage_widget;
 mod data;
 mod time_helper;
+mod usage_widget;
 
-use crate::usage_widget::UsageWidget;
 use crate::usage_widget::Model as AppUsageModel;
-
+use crate::usage_widget::UsageWidget;
 
 #[derive(Msg)]
 pub enum Msg {
@@ -48,7 +34,7 @@ pub enum Msg {
 
 pub struct Model {
     relm: Relm<Win>,
-    usage_widgets: Vec<Component<UsageWidget>>
+    usage_widgets: Vec<Component<UsageWidget>>,
 }
 
 #[widget]
@@ -56,7 +42,7 @@ impl Widget for Win {
     fn model(relm: &Relm<Self>, _: ()) -> Model {
         Model {
             relm: relm.clone(),
-            usage_widgets: vec![]
+            usage_widgets: vec![],
         }
     }
 
@@ -67,9 +53,11 @@ impl Widget for Win {
     fn update(&mut self, event: Msg) {
         match event {
             Msg::Add(name, duration, fraction) => {
-                let widget = self.most_used.add_widget::<UsageWidget>((name, duration, fraction));
+                let widget = self
+                    .most_used
+                    .add_widget::<UsageWidget>((name, duration, fraction));
                 self.model.usage_widgets.push(widget);
-            },
+            }
             Msg::ShowDayStats => {
                 if self.today_radio.get_active() {
                     while let Some(widget) = self.model.usage_widgets.pop() {
@@ -77,7 +65,7 @@ impl Widget for Win {
                     }
                     self.load_stats(1);
                 }
-            },
+            }
             Msg::ShowWeekStats => {
                 if self.week_radio.get_active() {
                     while let Some(widget) = self.model.usage_widgets.pop() {
@@ -85,7 +73,7 @@ impl Widget for Win {
                     }
                     self.load_stats(7);
                 }
-            },
+            }
             Msg::SetEarliestAndLatest(_, _) => {
                 //TODO
             }
@@ -99,13 +87,15 @@ impl Widget for Win {
 
     view! {
         gtk::Window {
+            property_default_width: 500,
             gtk::Box {
                 orientation: gtk::Orientation::Vertical,
                 spacing: 12,
                 gtk::ButtonBox {
+                    margin_top: 12,
                     orientation: gtk::Orientation::Horizontal,
                     layout: gtk::ButtonBoxStyle::Expand,
-                    halign: ::gtk::Align::Center,
+                    halign: gtk::Align::Center,
                     #[name="today_radio"]
                     gtk::RadioButton {
                         label: "Today",
@@ -120,16 +110,18 @@ impl Widget for Win {
                     },
                 },
 
-                gtk::Frame {
-                    label: "Most used",
+                gtk::ScrolledWindow {
+                    // label: "Most used",
+                    property_hscrollbar_policy: gtk::PolicyType::Never,
                     #[name="most_used"]
                     gtk::Box {
                         orientation: Vertical,
                     },
 
-                    child: {
-                        padding: 6
-                    }
+                    hexpand: true,
+                    vexpand: true,
+                    min_content_width: 350,
+                    min_content_height: 350,
                 }
             },
             // Use a tuple when you want to both send a message and return a value to
@@ -141,21 +133,26 @@ impl Widget for Win {
 
 impl Win {
     fn load_stats(&self, days_count: i64) {
-        let frames = data::load_from_prev_days(days_count).unwrap();   
+        let frames = data::load_from_prev_days(days_count).unwrap();
         let (earliest, latest) = data::get_earliest_and_latest(&frames);
 
-        self.model.relm.stream().emit(Msg::SetEarliestAndLatest(earliest, latest));
+        self.model
+            .relm
+            .stream()
+            .emit(Msg::SetEarliestAndLatest(earliest, latest));
 
         let entries = data::calculate_usage(frames);
         let total_usage = entries.iter().fold(0, |acc, entry| acc + entry.time);
         for entry in entries {
             let fraction = entry.time as f64 / total_usage as f64;
-            self.model.relm.stream().emit(Msg::Add(entry.name, entry.time, fraction));
+            self.model
+                .relm
+                .stream()
+                .emit(Msg::Add(entry.name, entry.time, fraction));
         }
     }
 }
 
 fn main() {
     Win::run(()).expect("Win::run failed");
-    
 }
