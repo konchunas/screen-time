@@ -35,14 +35,13 @@ pub fn load_from_prev_days(day_count: i64) -> std::io::Result<Vec<Frame>> {
     let mut frames = vec![];
     for i in 0..day_count {
         let day = Local::today() - chrono::Duration::days(i);
-        let today_date = day.format("%b-%e-%Y");
+        let today_date = day.format("%b-%d-%Y");
         let filename = format!("{}.csv", today_date);
         let filepath = folder_path.join(filename);
-        println!("{:?}", filepath);
         if !filepath.exists() {
             continue
         }
-        
+
         let mut day_frames = load_frames(&filepath)?;
         frames.append(&mut day_frames);
     }

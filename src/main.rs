@@ -100,11 +100,12 @@ impl Widget for Win {
     view! {
         gtk::Window {
             gtk::Box {
-                orientation: Vertical,
-
+                orientation: gtk::Orientation::Vertical,
+                spacing: 12,
                 gtk::ButtonBox {
-                    orientation: Horizontal,
+                    orientation: gtk::Orientation::Horizontal,
                     layout: gtk::ButtonBoxStyle::Expand,
+                    halign: ::gtk::Align::Center,
                     #[name="today_radio"]
                     gtk::RadioButton {
                         label: "Today",
@@ -121,7 +122,6 @@ impl Widget for Win {
 
                 gtk::Frame {
                     label: "Most used",
-
                     #[name="most_used"]
                     gtk::Box {
                         orientation: Vertical,
