@@ -4,7 +4,7 @@ use relm::{Relm, Widget};
 use gtk::{BoxExt, OrientableExt, LabelExt, ProgressBarExt, ImageExt, WidgetExt};
 use gtk::Orientation::*;
 
-use gio::{DesktopAppInfo, Icon};
+use gio::{DesktopAppInfo, AppInfoExt, Icon};
 
 use crate::time_helper::format_duration;
 
@@ -23,8 +23,7 @@ pub struct Model {
 #[widget]
 impl Widget for UsageWidget {
     fn model(_: &Relm<Self>, (name, duration, fraction): (String, i64, f64)) -> Model {
-        // let (name, icon) = get_display_name_and_icon(name);
-        let (name, icon) = (name, None);
+        let (name, icon) = get_display_name_and_icon(&name);
         let duration = format_duration(duration);
         Model {
             name,
@@ -46,7 +45,11 @@ impl Widget for UsageWidget {
 
     fn init_view(&mut self) {
         use relm::ToGlib; //TODO after update
-        self.icon.set_from_icon_name("unknown", gtk::IconSize::Dialog.to_glib());
+        let icon_size = gtk::IconSize::Dialog.to_glib();
+        match &self.model.icon {
+            Some(icon) => self.icon.set_from_gicon(icon, icon_size),
+            None => self.icon.set_from_icon_name("unknown", icon_size)
+        }
     }
 
     view! {
@@ -79,45 +82,23 @@ impl Widget for UsageWidget {
     }
 }
 
-fn get_desktop_app_info_compat(class_name: &str) -> Option<DesktopAppInfo> {
+fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
     let search_results = DesktopAppInfo::search(&class_name);
     if !search_results.is_empty() && !search_results[0].is_empty() {
-        println!("But found closest match {}", search_results[0][0]);
-        return Ok(DesktopAppInfo::new(&search_results[0][0])) //take the first match
+        return Some(DesktopAppInfo::new(&search_results[0][0])) //take the first match
     }
-    // DesktopAppInfo::new(&format!("{}.desktop", &class_name)).or_else(|| {
-    //     println!("No match for {}.desktop", &class_name);
-    //     let search_results = DesktopAppInfo::search(&class_name);
-    //     if !search_results.is_empty() && !search_results[0].is_empty() {
-    //         println!("But found closest match {}", search_results[0][0]);
-    //         return DesktopAppInfo::new(&search_results[0][0]); //take the first match
-    //     }
-    //     None
-    // })
     None
+}
 
-// fn get_display_name_and_icon(name: &str) -> (String, Option<gio::Icon>) {
-//     let desktop_info = get_desktop_app_info(name);
+fn get_display_name_and_icon(class_name: &str) -> (String, Option<gio::Icon>) {
+    let desktop_info = get_desktop_app_info(class_name);
 
-//     let (name, icon) = match desktop_info {
-//         Some(info) => (info.get_name(), info.get_icon()),
-//         None => (None, None),
-//     };
+    let (name, icon) = match desktop_info {
+        Some(info) => (info.get_name(), info.get_icon()),
+        None => (None, None),
+    };
 
-//     let name = name.map_or(name.to_string(), |name| String::from(name.as_str()));
+    let name = name.map_or(class_name.to_string(), |name| String::from(name.as_str()));
 
-//     (name, icon)
-// }
-
-// fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
-//     // DesktopAppInfo::new(&format!("{}.desktop", &class_name)).or_else(|| {
-//     //     println!("No match for {}.desktop", &class_name);
-//     //     let search_results = DesktopAppInfo::search(&class_name);
-//     //     if !search_results.is_empty() && !search_results[0].is_empty() {
-//     //         println!("But found closest match {}", search_results[0][0]);
-//     //         return DesktopAppInfo::new(&search_results[0][0]); //take the first match
-//     //     }
-//     //     None
-//     // })
-//     None
-// }
+    (name, icon)
+}
