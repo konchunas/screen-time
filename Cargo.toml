@@ -5,7 +5,6 @@ authors = ["Julian Konchunas <konchunas@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-gtk = "0.5.0"
 gio = "0.5.0"
 relm = "0.15.2"
 relm-derive = "0.15.2"
@@ -16,6 +15,10 @@ chrono = "0.4.6"
 
 [features]
 default = ["relm/unstable", "relm-attributes/unstable", "relm-derive/unstable"]
+
+[dependencies.gtk]
+version = "0.5.0"
+features = ["v3_10"]
 
 [patch.crates-io]
 # gio = { path = '/mnt/antergos/home/julian/Projects/gio/' }

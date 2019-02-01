@@ -9,8 +9,8 @@ use relm_attributes::widget;
 
 use gtk::Orientation::*;
 use gtk::{
-    BoxExt, ButtonBoxExt, ButtonExt, FrameExt, GtkWindowExt, Inhibit, OrientableExt,
-    RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt,
+    BoxExt, ButtonBoxExt, ButtonExt, FrameExt, GtkWindowExt, HeaderBarExt, Inhibit, OrientableExt,
+    RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt
 };
 use relm::{Component, ContainerWidget};
 use relm::{Relm, Widget};
@@ -80,10 +80,16 @@ impl Widget for Win {
     }
 
     fn init_view(&mut self) {
+        let header = gtk::HeaderBar::new();
+        header.set_title("Screen Time");
+        header.set_show_close_button(true);
+        self.window.set_titlebar(&header);
+        header.show();
         self.week_radio.join_group(Some(&self.today_radio));
     }
 
     view! {
+        #[name="window"]
         gtk::Window {
             property_default_width: 500,
             gtk::Box {
