@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, Timelike, DateTime, Local, TimeZone};
+use chrono::{NaiveDateTime, Timelike, Local, TimeZone};
 
 pub fn format_duration(time: i64) -> String {
     let date_time = NaiveDateTime::from_timestamp(time, 0);

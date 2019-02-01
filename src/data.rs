@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::string::String;
 
 use std::fs::File;
-use std::path::PathBuf;
 use std::io::prelude::*;
+use std::path::PathBuf;
 
-use chrono::{DateTime, Local};
+use chrono::Local;
 
 use std::io::{Error, ErrorKind};
 
@@ -39,7 +39,7 @@ pub fn load_from_prev_days(day_count: i64) -> std::io::Result<Vec<Frame>> {
         let filename = format!("{}.csv", today_date);
         let filepath = folder_path.join(filename);
         if !filepath.exists() {
-            continue
+            continue;
         }
 
         let mut day_frames = load_frames(&filepath)?;

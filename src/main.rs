@@ -9,7 +9,7 @@ use relm_attributes::widget;
 
 use gtk::Orientation::*;
 use gtk::{
-    BoxExt, Button, ButtonBoxExt, ButtonExt, ContainerExt, FrameExt, GtkWindowExt, Inhibit, Label,
+    BoxExt, ButtonBoxExt, ButtonExt, ContainerExt, FrameExt, GtkWindowExt, Inhibit, Label,
     LabelExt, OrientableExt, RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt, Window,
     WindowType,
 };
@@ -18,15 +18,17 @@ use relm::{Relm, Update, Widget};
 
 mod data;
 mod time_helper;
+mod total_usage_widget;
 mod usage_widget;
 
-use crate::usage_widget::Model as AppUsageModel;
+use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};
 use crate::usage_widget::UsageWidget;
 
 #[derive(Msg)]
 pub enum Msg {
     Add(String, i64, f64),
-    SetEarliestAndLatest(i64, i64),
+    // SetEarliestAndLatest(i64, i64),
+    // SetTotalUsage()
     ShowWeekStats,
     ShowDayStats,
     Quit,
@@ -73,10 +75,7 @@ impl Widget for Win {
                     }
                     self.load_stats(7);
                 }
-            }
-            Msg::SetEarliestAndLatest(_, _) => {
-                //TODO
-            }
+            },
             Msg::Quit => gtk::main_quit(),
         }
     }
@@ -92,7 +91,7 @@ impl Widget for Win {
                 orientation: gtk::Orientation::Vertical,
                 spacing: 12,
                 gtk::ButtonBox {
-                    margin_top: 12,
+                    margin_top: 15,
                     orientation: gtk::Orientation::Horizontal,
                     layout: gtk::ButtonBoxStyle::Expand,
                     halign: gtk::Align::Center,
@@ -109,19 +108,32 @@ impl Widget for Win {
                         toggled => Msg::ShowWeekStats,
                     },
                 },
+                #[name="total_usage"]
+                TotalUsage {},
 
-                gtk::ScrolledWindow {
-                    // label: "Most used",
-                    property_hscrollbar_policy: gtk::PolicyType::Never,
-                    #[name="most_used"]
-                    gtk::Box {
-                        orientation: Vertical,
+                gtk::Frame {
+                    label: "Most used",
+                    gtk::ScrolledWindow {
+                        property_hscrollbar_policy: gtk::PolicyType::Never,
+                        #[name="most_used"]
+                        gtk::Box {
+                            orientation: Vertical,
+                        },
+
+                        hexpand: true,
+                        vexpand: true,
+                        min_content_width: 350,
+                        min_content_height: 350,
+
                     },
-
-                    hexpand: true,
-                    vexpand: true,
-                    min_content_width: 350,
-                    min_content_height: 350,
+                    child: {
+                        expand: true,
+                        fill: true,
+                    },
+                    margin_top: 12,
+                    margin_left: 12,
+                    margin_bottom: 12,
+                    margin_right: 12,
                 }
             },
             // Use a tuple when you want to both send a message and return a value to
@@ -132,17 +144,16 @@ impl Widget for Win {
 }
 
 impl Win {
-    fn load_stats(&self, days_count: i64) {
+    fn load_stats(&mut self, days_count: i64) {
         let frames = data::load_from_prev_days(days_count).unwrap();
         let (earliest, latest) = data::get_earliest_and_latest(&frames);
 
-        self.model
-            .relm
-            .stream()
-            .emit(Msg::SetEarliestAndLatest(earliest, latest));
+        self.total_usage
+            .emit(TotalUsageMsg::SetSpan(earliest, latest));
 
         let entries = data::calculate_usage(frames);
         let total_usage = entries.iter().fold(0, |acc, entry| acc + entry.time);
+        self.total_usage.emit(TotalUsageMsg::SetTotal(total_usage));
         for entry in entries {
             let fraction = entry.time as f64 / total_usage as f64;
             self.model

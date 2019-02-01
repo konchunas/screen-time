@@ -33,14 +33,7 @@ impl Widget for UsageWidget {
         }
     }
 
-    fn update(&mut self, event: Msg) {
-        // match event {
-        //     // A call to self.label1.set_text() is automatically inserted by the
-        //     // attribute every time the model.counter attribute is updated.
-        //     Msg::Decrement => self.model.counter -= 1,
-        //     Msg::Increment => self.model.counter += 1,
-        //     Msg::Quit => gtk::main_quit(),
-        // }
+    fn update(&mut self, _event: Msg) {
     }
 
     fn init_view(&mut self) {
@@ -60,7 +53,7 @@ impl Widget for UsageWidget {
                 spacing: 12,
                 #[name="icon"]
                 gtk::Image {
-                    margin_left: 6,
+                    margin_left: 12,
                     margin_right: 6,
                     margin_top: 6,
                     margin_bottom: 6,
