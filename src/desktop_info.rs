@@ -12,23 +12,19 @@ static SPECIFIC_CATEGORIES: &[&'static str] = &[
     "WebBrowser",
     "InstantMessaging",
     "Education",
+    "Game",
     "Audio",
     "Video",
     "AudioVideo",
     "Finance",
     "Graphics",
     "Science",
-    "TerminalEmulator"
+    "TerminalEmulator",
 ];
 
 // not so important categories to use as a second frontier
 static SECONDARY_CATEGORIES: &[&'static str] = &[
-    "Settings",
-    "Network",
-    "Office",
-    "Settings",
-    "System",
-    "Utility",
+    "Settings", "Network", "Office", "System", "Utility",
 ];
 
 pub struct AppInfo {
@@ -100,16 +96,24 @@ fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
 
 fn get_category(info: DesktopAppInfo) -> Option<String> {
     let categories = info.get_categories()?;
-    
+
     let cat_list: Vec<&str> = categories.split(';').collect();
     for category in cat_list.iter() {
-        if SPECIFIC_CATEGORIES.iter().position(|cat| cat == category).is_some() {
+        if SPECIFIC_CATEGORIES
+            .iter()
+            .position(|cat| cat == category)
+            .is_some()
+        {
             return Some(category.to_string());
         }
     }
 
     for category in cat_list.iter() {
-        if SECONDARY_CATEGORIES.iter().position(|cat| cat == category).is_some() {
+        if SECONDARY_CATEGORIES
+            .iter()
+            .position(|cat| cat == category)
+            .is_some()
+        {
             return Some(category.to_string());
         }
     }
@@ -120,6 +124,17 @@ fn get_category(info: DesktopAppInfo) -> Option<String> {
 fn get_category_icon(name: &str) -> Option<Icon> {
     let icon_name = match name {
         "Development" => "applications-development",
+        "WebBrowser" | "Network" => "applications-internet",
+        "InstantMessaging" => "applications-fonts",
+        "Education" => "applications-education",
+        "Audio" | "Video" | "AudioVideo" => "applications-multimedia",
+        "Finance" | "Office" => "applications-office",
+        "Graphics" => "applications-graphics",
+        "Science" => "applications-science",
+        "Utility" => "applications-utilities",
+        "TerminalEmulator" => "utilities-terminal",
+        "System" | "Settings" => "applications-system",
+        "Game" => "applicaions-games",
         _ => "applications-other",
     };
 
