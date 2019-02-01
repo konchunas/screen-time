@@ -21,7 +21,7 @@ mod time_helper;
 mod total_usage_widget;
 mod usage_widget;
 
-use crate::desktop_info::{load_as_apps, load_as_categories, AppInfo};
+use crate::desktop_info::AppInfo;
 use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};
 use crate::usage_widget::UsageWidget;
 

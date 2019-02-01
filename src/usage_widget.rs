@@ -46,18 +46,17 @@ impl Widget for UsageWidget {
                     orientation: Vertical,
                     gtk::Label {
                         text: &self.model.name,
-                        valign: gtk::Align::Center,
-                        vexpand: true,
+                        child: {
+                            expand: true,
+                        },
                     },
                     gtk::ProgressBar {
                         fraction: self.model.fraction,
                         valign: gtk::Align::Center,
-                        vexpand: true,
+                        child: {
+                            expand: true,
+                        },
                     },
-                    // child: {
-                    //     expand: true,
-                    //     padding: 12,
-                    // },
                     hexpand: true
                 },
                 gtk::Label {
