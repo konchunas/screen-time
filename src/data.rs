@@ -55,10 +55,9 @@ pub fn load_frames(path: &PathBuf) -> std::io::Result<Vec<Frame>> {
     file.read_to_string(&mut text)
         .expect("Cannot read Screen Time log for today");
 
-    let mut counter = 0;
     let mut frames = Vec::new();
     for line in text.lines() {
-        counter += 1;
+        //  counter += 1;
         let mut words = line.split(DELIM);
         let frame: Result<Frame, bool> = (|| {
             Ok(Frame {
@@ -77,7 +76,7 @@ pub fn load_frames(path: &PathBuf) -> std::io::Result<Vec<Frame>> {
         })();
         match frame {
             Ok(frame) => {
-                let duration = frame.end - frame.start;
+                // let duration = frame.end - frame.start;
                 // println!(
                 //     "frame duration {} at line {}",
                 //     crate::time_helper::format_duration(duration),

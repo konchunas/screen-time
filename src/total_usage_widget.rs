@@ -1,7 +1,7 @@
 use relm::{Relm, Widget};
 use relm_attributes::widget;
 
-use gtk::{BoxExt, WidgetExt, LabelExt, OrientableExt};
+use gtk::{WidgetExt, LabelExt, OrientableExt};
 
 use crate::time_helper::{format_duration, format_timestamp};
 

@@ -9,22 +9,21 @@ use relm_attributes::widget;
 
 use gtk::Orientation::*;
 use gtk::{
-    BoxExt, ButtonBoxExt, ButtonExt, ContainerExt, FrameExt, GtkWindowExt, Inhibit, Label,
-    LabelExt, OrientableExt, RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt, Window,
-    WindowType,
+    BoxExt, ButtonBoxExt, ButtonExt, FrameExt, GtkWindowExt, Inhibit, OrientableExt,
+    RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt,
 };
 use relm::{Component, ContainerWidget};
-use relm::{Relm, Update, Widget};
+use relm::{Relm, Widget};
 
 mod data;
+mod desktop_info;
 mod time_helper;
 mod total_usage_widget;
 mod usage_widget;
-mod desktop_info;
 
+use crate::desktop_info::{load_as_apps, load_as_categories, AppInfo};
 use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};
 use crate::usage_widget::UsageWidget;
-use crate::desktop_info::{AppInfo, load_as_apps, load_as_categories};
 
 #[derive(Msg)]
 pub enum Msg {
@@ -57,9 +56,7 @@ impl Widget for Win {
     fn update(&mut self, event: Msg) {
         match event {
             Msg::Add(app_info) => {
-                let widget = self
-                    .most_used
-                    .add_widget::<UsageWidget>(app_info);
+                let widget = self.most_used.add_widget::<UsageWidget>(app_info);
                 self.model.usage_widgets.push(widget);
             }
             Msg::ShowDayStats => {
@@ -77,7 +74,7 @@ impl Widget for Win {
                     }
                     self.load_stats(7);
                 }
-            },
+            }
             Msg::Quit => gtk::main_quit(),
         }
     }
@@ -115,6 +112,7 @@ impl Widget for Win {
 
                 gtk::Frame {
                     label: "Most used",
+                    shadow_type: gtk::ShadowType::EtchedIn,
                     gtk::ScrolledWindow {
                         property_hscrollbar_policy: gtk::PolicyType::Never,
                         #[name="most_used"]
@@ -158,10 +156,7 @@ impl Win {
         self.total_usage.emit(TotalUsageMsg::SetTotal(total_usage));
         let app_infos = desktop_info::load_as_categories(entries, total_usage as f64);
         for app_info in app_infos {
-            self.model
-                .relm
-                .stream()
-                .emit(Msg::Add(app_info));
+            self.model.relm.stream().emit(Msg::Add(app_info));
         }
     }
 }
