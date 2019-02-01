@@ -1,47 +1,31 @@
-use relm_attributes::widget;
 use relm::{Relm, Widget};
+use relm_attributes::widget;
 
-use gtk::{BoxExt, OrientableExt, LabelExt, ProgressBarExt, ImageExt, WidgetExt};
 use gtk::Orientation::*;
+use gtk::{BoxExt, ImageExt, LabelExt, OrientableExt, ProgressBarExt, WidgetExt};
 
-use gio::{DesktopAppInfo, AppInfoExt, Icon};
+use crate::desktop_info::AppInfo as Model;
+// use crate::time_helper::format_duration;
 
-use crate::time_helper::format_duration;
-
-#[derive(Msg)]
-pub enum Msg {
-    Update,
-}
-
-pub struct Model {
-    icon: Option<Icon>,
-    name: String,
-    duration: String,
-    fraction: f64
-}
+// #[derive(Msg)]
+// pub enum Msg {
+//     Update,
+// }
 
 #[widget]
 impl Widget for UsageWidget {
-    fn model(_: &Relm<Self>, (name, duration, fraction): (String, i64, f64)) -> Model {
-        let (name, icon) = get_display_name_and_icon(&name);
-        let duration = format_duration(duration);
-        Model {
-            name,
-            fraction,
-            icon,
-            duration,
-        }
+    fn model(_: &Relm<Self>, model: Model) -> Model {
+        model
     }
 
-    fn update(&mut self, _event: Msg) {
-    }
+    fn update(&mut self, _event: ()) {}
 
     fn init_view(&mut self) {
         use relm::ToGlib; //TODO after update
         let icon_size = gtk::IconSize::Dialog.to_glib();
         match &self.model.icon {
             Some(icon) => self.icon.set_from_gicon(icon, icon_size),
-            None => self.icon.set_from_icon_name("unknown", icon_size)
+            None => self.icon.set_from_icon_name("unknown", icon_size),
         }
     }
 
@@ -85,25 +69,4 @@ impl Widget for UsageWidget {
             gtk::Separator {},
         }
     }
-}
-
-fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
-    let search_results = DesktopAppInfo::search(&class_name);
-    if !search_results.is_empty() && !search_results[0].is_empty() {
-        return Some(DesktopAppInfo::new(&search_results[0][0])) //take the first match
-    }
-    None
-}
-
-fn get_display_name_and_icon(class_name: &str) -> (String, Option<gio::Icon>) {
-    let desktop_info = get_desktop_app_info(class_name);
-
-    let (name, icon) = match desktop_info {
-        Some(info) => (info.get_name(), info.get_icon()),
-        None => (None, None),
-    };
-
-    let name = name.map_or(class_name.to_string(), |name| String::from(name.as_str()));
-
-    (name, icon)
 }

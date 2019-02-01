@@ -20,13 +20,15 @@ mod data;
 mod time_helper;
 mod total_usage_widget;
 mod usage_widget;
+mod desktop_info;
 
 use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};
 use crate::usage_widget::UsageWidget;
+use crate::desktop_info::{AppInfo, load_as_apps, load_as_categories};
 
 #[derive(Msg)]
 pub enum Msg {
-    Add(String, i64, f64),
+    Add(AppInfo),
     // SetEarliestAndLatest(i64, i64),
     // SetTotalUsage()
     ShowWeekStats,
@@ -54,10 +56,10 @@ impl Widget for Win {
 
     fn update(&mut self, event: Msg) {
         match event {
-            Msg::Add(name, duration, fraction) => {
+            Msg::Add(app_info) => {
                 let widget = self
                     .most_used
-                    .add_widget::<UsageWidget>((name, duration, fraction));
+                    .add_widget::<UsageWidget>(app_info);
                 self.model.usage_widgets.push(widget);
             }
             Msg::ShowDayStats => {
@@ -154,12 +156,12 @@ impl Win {
         let entries = data::calculate_usage(frames);
         let total_usage = entries.iter().fold(0, |acc, entry| acc + entry.time);
         self.total_usage.emit(TotalUsageMsg::SetTotal(total_usage));
-        for entry in entries {
-            let fraction = entry.time as f64 / total_usage as f64;
+        let app_infos = desktop_info::load_as_categories(entries, total_usage as f64);
+        for app_info in app_infos {
             self.model
                 .relm
                 .stream()
-                .emit(Msg::Add(entry.name, entry.time, fraction));
+                .emit(Msg::Add(app_info));
         }
     }
 }
