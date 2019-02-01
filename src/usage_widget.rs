@@ -38,22 +38,21 @@ impl Widget for UsageWidget {
                 #[name="icon"]
                 gtk::Image {
                     margin_left: 12,
-                    margin_right: 6,
-                    margin_top: 6,
-                    margin_bottom: 6,
+                    margin_right: 9,
+                    margin_top: 9,
+                    margin_bottom: 9,
                 },
                 gtk::Box {
                     orientation: Vertical,
                     gtk::Label {
                         text: &self.model.name,
-                        valign: gtk::Align::Fill,
+                        valign: gtk::Align::Center,
+                        vexpand: true,
                     },
                     gtk::ProgressBar {
                         fraction: self.model.fraction,
                         valign: gtk::Align::Center,
-                        child: {
-                            expand: true
-                        }
+                        vexpand: true,
                     },
                     // child: {
                     //     expand: true,
@@ -64,6 +63,7 @@ impl Widget for UsageWidget {
                 gtk::Label {
                     text: &self.model.duration,
                     width_chars: 7,
+                    margin_right: 12,
                 }
             },
             gtk::Separator {},
