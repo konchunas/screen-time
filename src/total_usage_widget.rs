@@ -3,7 +3,7 @@ use relm_attributes::widget;
 
 use gtk::{WidgetExt, LabelExt, OrientableExt};
 
-use crate::time_helper::{format_duration, format_timestamp};
+use crate::time_helper::{format_duration, format_timestamp, format_datetime};
 
 #[derive(Msg)]
 pub enum Msg {
@@ -28,9 +28,12 @@ impl Widget for TotalUsage {
     fn update(&mut self, event: Msg) {
         match event {
             Msg::SetSpan(earliest, latest) => {
-                let earliest_str = format_timestamp(earliest);
-                let latest_str = format_timestamp(latest);
-                let time_span = format!("{}  -  {}", earliest_str, latest_str);
+                println!("lat - earl {}", latest - earliest);
+                let (earliest, latest) = match latest - earliest >= 86400 {
+                    true => (format_datetime(earliest), format_datetime(latest)),
+                    false => (format_timestamp(earliest), format_timestamp(latest)),
+                };
+                let time_span = format!("{}  -  {}", earliest, latest);
                 self.model.time_span = time_span;
             }
             Msg::SetTotal(duration) => {

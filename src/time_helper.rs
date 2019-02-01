@@ -18,3 +18,8 @@ pub fn format_timestamp(time: i64) -> String {
     let date_time = Local.timestamp(time, 0);
     return date_time.time().format("%R").to_string(); //TODO preffered system format
 }
+
+pub fn format_datetime(time: i64) -> String {
+    let date_time = Local.timestamp(time, 0);
+    return date_time.format("%-d %b %R").to_string(); //TODO preffered system format
+}

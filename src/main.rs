@@ -140,11 +140,11 @@ impl Widget for Win {
                         track_visited_links: false,
                         activate_link(_,_) => (Msg::ToggleCategoriesMode, Inhibit(false)),
                     },
-                    margin_left: 12,
-                    margin_right: 12,
-                    margin_bottom: 1,   
+                    margin_left: 15,
+                    margin_right: 15,
+                    margin_bottom: 3,   
                 },
-
+                #[name="most_used_frame"]
                 gtk::Frame {
                     // label: "Most used",
                     shadow_type: gtk::ShadowType::EtchedIn,
@@ -157,8 +157,8 @@ impl Widget for Win {
 
                         hexpand: true,
                         vexpand: true,
-                        min_content_width: 350,
-                        min_content_height: 350,
+                        min_content_width: 400,
+                        min_content_height: 400,
 
                     },
                     child: {

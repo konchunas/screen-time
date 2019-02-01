@@ -119,7 +119,7 @@ pub fn calculate_usage(frames: Vec<Frame>) -> Vec<UsageEntry> {
 }
 
 pub fn get_earliest_and_latest(frames: &Vec<Frame>) -> (i64, i64) {
-    let earliest = frames.iter().nth(0).unwrap().start;
-    let latest = frames.iter().last().unwrap().end;
-    (earliest, latest)
+    let earliest = frames.iter().min_by_key(|frame| frame.start).unwrap();
+    let latest = frames.iter().max_by_key(|frame| frame.end).unwrap();
+    (earliest.start, latest.end)
 }
