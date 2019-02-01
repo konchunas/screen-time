@@ -6,6 +6,31 @@ use crate::data::UsageEntry;
 use crate::time_helper::format_duration;
 use gtk::Cast;
 
+// categories which provide some useful insight of activity
+static SPECIFIC_CATEGORIES: &[&'static str] = &[
+    "Development",
+    "WebBrowser",
+    "InstantMessaging",
+    "Education",
+    "Audio",
+    "Video",
+    "AudioVideo",
+    "Finance",
+    "Graphics",
+    "Science",
+    "TerminalEmulator"
+];
+
+// not so important categories to use as a second frontier
+static SECONDARY_CATEGORIES: &[&'static str] = &[
+    "Settings",
+    "Network",
+    "Office",
+    "Settings",
+    "System",
+    "Utility",
+];
+
 pub struct AppInfo {
     pub icon: Option<Icon>,
     pub name: String,
@@ -18,7 +43,7 @@ pub fn load_as_apps(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<AppInfo> 
     for entry in entries {
         let (name, icon) = match get_desktop_app_info(&entry.name) {
             Some(info) => (info.get_name(), info.get_icon()),
-            None => (None, None)
+            None => (None, None),
         };
         infos.push(AppInfo {
             name: name.unwrap_or(entry.name),
@@ -49,17 +74,18 @@ pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<App
         .into_iter()
         .map(|(name, time)| UsageEntry { name, time })
         .collect();
-    
+
     categories_usage.sort_unstable_by(|a, b| b.time.cmp(&a.time));
-    
-    let sorted_category_usage_info = categories_usage.into_iter().map(|entry| {
-        AppInfo {
+
+    let sorted_category_usage_info = categories_usage
+        .into_iter()
+        .map(|entry| AppInfo {
             icon: get_category_icon(&entry.name),
             name: entry.name,
             fraction: entry.time as f64 / total_usage,
             duration: format_duration(entry.time),
-        }
-    }).collect();
+        })
+        .collect();
 
     sorted_category_usage_info
 }
@@ -73,12 +99,27 @@ fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
 }
 
 fn get_category(info: DesktopAppInfo) -> Option<String> {
-    let category = info.get_categories();
-    category
+    let categories = info.get_categories()?;
+    
+    let cat_list: Vec<&str> = categories.split(';').collect();
+    for category in cat_list.iter() {
+        if SPECIFIC_CATEGORIES.iter().position(|cat| cat == category).is_some() {
+            return Some(category.to_string());
+        }
+    }
+
+    for category in cat_list.iter() {
+        if SECONDARY_CATEGORIES.iter().position(|cat| cat == category).is_some() {
+            return Some(category.to_string());
+        }
+    }
+
+    None
 }
 
 fn get_category_icon(name: &str) -> Option<Icon> {
     let icon_name = match name {
+        "Development" => "applications-development",
         _ => "applications-other",
     };
 
