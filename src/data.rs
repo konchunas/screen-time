@@ -97,7 +97,6 @@ pub fn load_frames(path: &PathBuf) -> std::io::Result<Vec<Frame>> {
 
 pub fn calculate_usage(frames: Vec<Frame>) -> Vec<UsageEntry> {
     let mut map: HashMap<String, i64> = HashMap::new();
-    // print("frames count: %u\n", frames.length);
     for frame in frames {
         let frame_time = frame.end - frame.start;
         *map.entry(frame.name).or_insert(0) += frame_time;

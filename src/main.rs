@@ -8,7 +8,7 @@ extern crate relm_attributes;
 use relm_attributes::widget;
 
 use gtk::{
-    ButtonBoxExt, ButtonExt, FrameExt, GtkWindowExt, HeaderBarExt, Inhibit,
+    ButtonBoxExt, ButtonExt, GtkWindowExt, HeaderBarExt, Inhibit,
     OrientableExt, RadioButtonExt, ToggleButtonExt, WidgetExt,
 };
 use relm::{Relm, Widget};
@@ -87,7 +87,6 @@ impl Widget for Win {
             property_default_width: 500,
             gtk::Box {
                 orientation: gtk::Orientation::Vertical,
-                // spacing: 12,
                 gtk::ButtonBox {
                     margin_top: 15,
                     orientation: gtk::Orientation::Horizontal,

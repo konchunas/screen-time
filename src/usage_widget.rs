@@ -5,12 +5,6 @@ use gtk::Orientation::*;
 use gtk::{BoxExt, ImageExt, LabelExt, OrientableExt, ProgressBarExt, WidgetExt};
 
 use crate::desktop_info::AppInfo as Model;
-// use crate::time_helper::format_duration;
-
-// #[derive(Msg)]
-// pub enum Msg {
-//     Update,
-// }
 
 #[widget]
 impl Widget for UsageWidget {
@@ -21,7 +15,7 @@ impl Widget for UsageWidget {
     fn update(&mut self, _event: ()) {}
 
     fn init_view(&mut self) {
-        use relm::ToGlib; //TODO after update
+        use relm::ToGlib; //TODO remove after update
         let icon_size = gtk::IconSize::Dialog.to_glib();
         match &self.model.icon {
             Some(icon) => self.icon.set_from_gicon(icon, icon_size),

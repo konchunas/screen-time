@@ -28,7 +28,6 @@ impl Widget for TotalUsage {
     fn update(&mut self, event: Msg) {
         match event {
             Msg::SetSpan(earliest, latest) => {
-                println!("lat - earl {}", latest - earliest);
                 let (earliest, latest) = match latest - earliest >= 86400 {
                     true => (format_datetime(earliest), format_datetime(latest)),
                     false => (format_timestamp(earliest), format_timestamp(latest)),
@@ -46,7 +45,6 @@ impl Widget for TotalUsage {
     view! {
         gtk::Box {
             orientation: gtk::Orientation::Vertical,
-            // spacing: 12,
             gtk::Label {
                 markup: &self.model.total_duration,
                 margin_top: 12,
