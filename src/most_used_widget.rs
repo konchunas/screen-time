@@ -7,7 +7,7 @@ use gtk::{BoxExt, WidgetExt, LabelExt, OrientableExt, FrameExt, ScrolledWindowEx
 
 use crate::data::UsageEntry;
 use crate::usage_widget::UsageWidget;
-use crate::desktop_info;
+use crate::app_info;
 
 static SHOW_CATEGORIES: &'static str = "Show categories";
 static SHOW_APPS: &'static str = "Show apps";
@@ -28,8 +28,8 @@ impl MostUsed {
     fn populate(&mut self, entries: Vec<UsageEntry>) {
         let total_usage = entries.iter().fold(0, |acc, entry| acc + entry.time);
         let app_infos = match self.model.is_categories_mode {
-            true => desktop_info::load_as_categories(entries, total_usage as f64),
-            false => desktop_info::load_as_apps(entries, total_usage as f64)
+            true => app_info::load_as_categories(entries, total_usage as f64),
+            false => app_info::load_as_apps(entries, total_usage as f64)
         };
         for app_info in app_infos {
             let widget = self.most_used.add_widget::<UsageWidget>(app_info);

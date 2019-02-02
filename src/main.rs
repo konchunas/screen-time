@@ -14,11 +14,11 @@ use gtk::{
 use relm::{Relm, Widget};
 
 mod data;
-mod desktop_info;
 mod most_used_widget;
 mod time_helper;
 mod total_usage_widget;
 mod usage_widget;
+mod app_info;
 
 use crate::most_used_widget::{Msg as MostUsedMsg, MostUsed};
 use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};

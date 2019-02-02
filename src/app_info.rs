@@ -1,9 +1,16 @@
-use gio::{AppInfoExt, DesktopAppInfo, DesktopAppInfoExt, Icon, ThemedIcon};
+mod app_info_provider;
+mod desktop_app_info;
+mod web_app_info;
+
 /// Searches and provides info from dektop files
+use gio::{AppInfoExt, DesktopAppInfo, DesktopAppInfoExt, Icon, ThemedIcon};
 use std::collections::HashMap;
 
 use crate::data::UsageEntry;
 use crate::time_helper::format_duration;
+use crate::app_info::app_info_provider::AppInfoProvider;
+use self::web_app_info::WebAppInfo;
+// use crate::app_info::desktop_app_info;
 use gtk::Cast;
 
 // categories which provide some useful insight of activity
@@ -37,7 +44,7 @@ pub struct AppInfo {
 pub fn load_as_apps(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<AppInfo> {
     let mut infos = vec![];
     for entry in entries {
-        let (name, icon) = match get_desktop_app_info(&entry.name) {
+        let (name, icon) = match get_app_info_provider(&entry.name) {
             Some(info) => (info.get_name(), info.get_icon()),
             None => (None, None),
         };
@@ -53,7 +60,7 @@ pub fn load_as_apps(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<AppInfo> 
 
 pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<AppInfo> {
     let usage_by_categories = entries.into_iter().map(|entry| {
-        let category = get_desktop_app_info(&entry.name).and_then(|info| get_category(info));
+        let category = get_app_info_provider(&entry.name).and_then(|info| get_category(info));
         UsageEntry {
             name: category.unwrap_or("Other".to_string()),
             time: entry.time,
@@ -86,15 +93,20 @@ pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<App
     sorted_category_usage_info
 }
 
-fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
+fn get_app_info_provider(class_name: &str) -> Option<Box<dyn AppInfoProvider>> {
+    let web_app = WebAppInfo::search(&class_name);
+    if let Some(web_app) = web_app {
+        return Some(Box::new(web_app));
+    }
+
     let search_results = DesktopAppInfo::search(&class_name);
     if !search_results.is_empty() && !search_results[0].is_empty() {
-        return Some(DesktopAppInfo::new(&search_results[0][0])); //take the first match
+        return Some(Box::new(DesktopAppInfo::new(&search_results[0][0]))); //take the first match
     }
     None
 }
 
-fn get_category(info: DesktopAppInfo) -> Option<String> {
+fn get_category(info: Box<dyn AppInfoProvider>) -> Option<String> {
     let categories = info.get_categories()?;
 
     let cat_list: Vec<&str> = categories.split(';').collect();
