@@ -35,6 +35,7 @@ impl Widget for UsageWidget {
                     margin_right: 9,
                     margin_top: 9,
                     margin_bottom: 9,
+                    pixel_size: 48, //HACK to force some icons to fit the same size
                 },
                 gtk::Box {
                     orientation: Vertical,
