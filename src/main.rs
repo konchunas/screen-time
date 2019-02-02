@@ -7,41 +7,34 @@ extern crate relm_attributes;
 
 use relm_attributes::widget;
 
-use gtk::Orientation::*;
 use gtk::{
-    BoxExt, ButtonBoxExt, ButtonExt, FrameExt, GtkWindowExt, HeaderBarExt, Inhibit, OrientableExt,
-    RadioButtonExt, ScrolledWindowExt, ToggleButtonExt, WidgetExt, LabelExt
+    ButtonBoxExt, ButtonExt, FrameExt, GtkWindowExt, HeaderBarExt, Inhibit,
+    OrientableExt, RadioButtonExt, ToggleButtonExt, WidgetExt,
 };
-use relm::{Component, ContainerWidget};
 use relm::{Relm, Widget};
 
 mod data;
 mod desktop_info;
+mod most_used_widget;
 mod time_helper;
 mod total_usage_widget;
 mod usage_widget;
 
-use crate::desktop_info::AppInfo;
+use crate::most_used_widget::{Msg as MostUsedMsg, MostUsed};
 use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};
-use crate::usage_widget::UsageWidget;
 
-static SHOW_CATEGORIES: &'static str = "Show categories";
-static SHOW_APPS: &'static str = "Show apps";
-
+use crate::most_used_widget::Msg::ToggleCategoriesMode as CategoriesModeToggled;
 
 #[derive(Msg)]
 pub enum Msg {
-    Add(AppInfo),
-    ToggleCategoriesMode,
     ShowWeekStats,
     ShowDayStats,
+    ToggleCategoriesMode,
     Quit,
 }
 
 pub struct Model {
     relm: Relm<Win>,
-    usage_widgets: Vec<Component<UsageWidget>>,
-    is_categories_mode: bool,
     days_count: i64,
 }
 
@@ -50,9 +43,7 @@ impl Widget for Win {
     fn model(relm: &Relm<Self>, _: ()) -> Model {
         Model {
             relm: relm.clone(),
-            usage_widgets: vec![],
             days_count: 1,
-            is_categories_mode: false,
         }
     }
 
@@ -62,10 +53,6 @@ impl Widget for Win {
 
     fn update(&mut self, event: Msg) {
         match event {
-            Msg::Add(app_info) => {
-                let widget = self.most_used.add_widget::<UsageWidget>(app_info);
-                self.model.usage_widgets.push(widget);
-            }
             Msg::ShowDayStats => {
                 if self.today_radio.get_active() {
                     self.model.days_count = 1;
@@ -79,8 +66,6 @@ impl Widget for Win {
                 }
             }
             Msg::ToggleCategoriesMode => {
-                self.model.is_categories_mode = !self.model.is_categories_mode;
-                self.reset_categories_switcher_text();
                 self.reload_stats();
             }
             Msg::Quit => gtk::main_quit(),
@@ -94,7 +79,6 @@ impl Widget for Win {
         self.window.set_titlebar(&header);
         header.show();
         self.week_radio.join_group(Some(&self.today_radio));
-        self.reset_categories_switcher_text();
     }
 
     view! {
@@ -125,49 +109,12 @@ impl Widget for Win {
                 #[name="total_usage"]
                 TotalUsage {
                     margin_top: 12,
-                    margin_bottom: 12
-                },
-
-                gtk::Box {
-                    orientation: gtk::Orientation::Horizontal,
-                    gtk::Label {
-                        text: "Most used",
-                    },
-                    #[name="mode_switcher"]
-                    gtk::Label {
-                        hexpand: true,
-                        halign: gtk::Align::End,
-                        track_visited_links: false,
-                        activate_link(_,_) => (Msg::ToggleCategoriesMode, Inhibit(false)),
-                    },
-                    margin_left: 15,
-                    margin_right: 15,
-                    margin_bottom: 3,   
-                },
-                #[name="most_used_frame"]
-                gtk::Frame {
-                    // label: "Most used",
-                    shadow_type: gtk::ShadowType::EtchedIn,
-                    gtk::ScrolledWindow {
-                        property_hscrollbar_policy: gtk::PolicyType::Never,
-                        #[name="most_used"]
-                        gtk::Box {
-                            orientation: Vertical,
-                        },
-
-                        hexpand: true,
-                        vexpand: true,
-                        min_content_width: 400,
-                        min_content_height: 400,
-
-                    },
-                    child: {
-                        expand: true,
-                        fill: true,
-                    },
-                    margin_left: 12,
                     margin_bottom: 12,
-                    margin_right: 12,
+                },
+                #[name="most_used"]
+                MostUsed {
+                    CategoriesModeToggled => Msg::ToggleCategoriesMode,
+                    //MostUsedMsg::ToggleCategoriesMode => Msg::ToggleCategoriesMode
                 }
             },
             // Use a tuple when you want to both send a message and return a value to
@@ -178,22 +125,12 @@ impl Widget for Win {
 }
 
 impl Win {
-    fn reset_categories_switcher_text(&mut self) {
-        let text = match self.model.is_categories_mode {
-            true => SHOW_APPS,
-            false => SHOW_CATEGORIES
-        };
-        self.mode_switcher.set_markup(&format!("<a href=''>{}</a>", text));
-    }
-
     fn reload_stats(&mut self) {
-        while let Some(widget) = self.model.usage_widgets.pop() {
-            self.most_used.remove_widget(widget);
-        }
-        self.load_stats(self.model.days_count, self.model.is_categories_mode);
+        self.most_used.emit(MostUsedMsg::Clear);
+        self.load_stats(self.model.days_count);
     }
 
-    fn load_stats(&mut self, days_count: i64, categories_mode: bool) {
+    fn load_stats(&mut self, days_count: i64) {
         let frames = data::load_from_prev_days(days_count).unwrap();
         let (earliest, latest) = data::get_earliest_and_latest(&frames);
 
@@ -203,13 +140,7 @@ impl Win {
         let entries = data::calculate_usage(frames);
         let total_usage = entries.iter().fold(0, |acc, entry| acc + entry.time);
         self.total_usage.emit(TotalUsageMsg::SetTotal(total_usage));
-        let app_infos = match categories_mode {
-            true => desktop_info::load_as_categories(entries, total_usage as f64),
-            false => desktop_info::load_as_apps(entries, total_usage as f64)
-        };
-        for app_info in app_infos {
-            self.model.relm.stream().emit(Msg::Add(app_info));
-        }
+        self.most_used.emit(MostUsedMsg::Populate(entries));
     }
 }
 
