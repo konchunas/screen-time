@@ -5,11 +5,14 @@ extern crate relm;
 extern crate relm_derive;
 extern crate relm_attributes;
 
+#[macro_use]
+extern crate lazy_static;
+
 use relm_attributes::widget;
 
 use gtk::{
-    ButtonBoxExt, ButtonExt, GtkWindowExt, HeaderBarExt, Inhibit,
-    OrientableExt, RadioButtonExt, ToggleButtonExt, WidgetExt,
+    ButtonBoxExt, ButtonExt, GtkWindowExt, HeaderBarExt, Inhibit, OrientableExt, RadioButtonExt,
+    ToggleButtonExt, WidgetExt,
 };
 use relm::{Relm, Widget};
 
@@ -19,8 +22,9 @@ mod most_used_widget;
 mod time_helper;
 mod total_usage_widget;
 mod usage_widget;
+mod collected_app_info;
 
-use crate::most_used_widget::{Msg as MostUsedMsg, MostUsed};
+use crate::most_used_widget::{MostUsed, Msg as MostUsedMsg};
 use crate::total_usage_widget::{Msg as TotalUsageMsg, TotalUsage};
 
 use crate::most_used_widget::Msg::ToggleCategoriesMode as CategoriesModeToggled;

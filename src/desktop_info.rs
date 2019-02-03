@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use crate::data::UsageEntry;
 use crate::time_helper::format_duration;
+use crate::collected_app_info::COLLECTED_APPINFO;
 use gtk::Cast;
 
 // categories which provide some useful insight of activity
@@ -87,6 +88,12 @@ pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<App
 }
 
 fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {
+    if COLLECTED_APPINFO.contains_key(class_name) {
+        let filename = COLLECTED_APPINFO.get(class_name).unwrap();
+        let desktop_info = DesktopAppInfo::new_from_filename(filename);
+        return Some(desktop_info);
+    }
+
     let search_results = DesktopAppInfo::search(&class_name);
     if !search_results.is_empty() && !search_results[0].is_empty() {
         return Some(DesktopAppInfo::new(&search_results[0][0])); //take the first match

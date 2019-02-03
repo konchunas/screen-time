@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use chrono::Local;
 
-use std::io::{Error, ErrorKind};
+use std::io::{Error as IoError, ErrorKind as IoErrorKind};
 
 pub struct Frame {
     name: String,
@@ -20,17 +20,45 @@ pub struct UsageEntry {
     pub time: i64,
 }
 
+#[derive(Debug)]
+pub enum Error {
+    NoFolder,
+    IoError(std::io::Error),
+}
+
 static DELIM: &'static str = ";";
 
-pub fn load_from_prev_days(day_count: i64) -> std::io::Result<Vec<Frame>> {
-    let mut folder_path = dirs::home_dir().unwrap();
-    folder_path.push(".screen-time");
-    if !folder_path.exists() {
-        return Err(Error::new(
-            ErrorKind::Other,
-            "No screen time logs exist. Is screen time daemon installed?",
-        ));
+pub fn get_folder() -> Result<PathBuf ,Error> {
+    let home_path = dirs::home_dir().unwrap();
+    let folder = home_path.join(".screen-time");
+    match folder.exists() {
+        true => Ok(folder),
+        false => Err(Error::NoFolder)
     }
+}
+
+pub fn load_collected_app_info() ->  Result<HashMap<String, String>, Error> {
+    let folder_path = get_folder()?;
+    let mut file = File::open(folder_path.join("app-names.csv")).map_err(Error::IoError)?;
+
+    let mut text = String::new();
+    file.read_to_string(&mut text).map_err(Error::IoError)?;
+
+    let mut map = HashMap::new();
+    for line in text.lines() {
+        let words: Vec<&str> = line.split(DELIM).collect();
+        if words.len() != 2 {
+            eprintln!("Skipping line from desktop paths file");
+            continue;
+        }
+        map.insert(words[0].to_string(), words[1].to_string());
+    }  
+
+    Ok(map)
+}
+
+pub fn load_from_prev_days(day_count: i64) -> Result<Vec<Frame>, Error> {
+    let folder_path = get_folder()?;
 
     let mut frames = vec![];
     for i in 0..day_count {
@@ -42,18 +70,17 @@ pub fn load_from_prev_days(day_count: i64) -> std::io::Result<Vec<Frame>> {
             continue;
         }
 
-        let mut day_frames = load_frames(&filepath)?;
+        let mut day_frames = load_frames(&filepath).map_err(Error::IoError)?;
         frames.append(&mut day_frames);
     }
     return Ok(frames);
 }
 
 pub fn load_frames(path: &PathBuf) -> std::io::Result<Vec<Frame>> {
-    let mut file = File::open(path).unwrap();
+    let mut file = File::open(path)?;
 
     let mut text = String::new();
-    file.read_to_string(&mut text)
-        .expect("Cannot read Screen Time log for today");
+    file.read_to_string(&mut text)?;
 
     let mut frames = Vec::new();
     for line in text.lines() {

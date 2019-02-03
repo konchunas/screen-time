@@ -12,7 +12,7 @@ relm-attributes = "0.15.2"
 
 dirs = "1.0.4"
 chrono = "0.4.6"
-
+lazy_static = "1.2.0"
 [features]
 default = ["relm/unstable", "relm-attributes/unstable", "relm-derive/unstable"]
 
