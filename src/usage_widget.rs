@@ -4,7 +4,7 @@ use relm_attributes::widget;
 use gtk::Orientation::*;
 use gtk::{BoxExt, ImageExt, LabelExt, OrientableExt, ProgressBarExt, WidgetExt};
 
-use crate::app_info::AppInfo as Model;
+use crate::desktop_info::AppInfo as Model;
 
 #[widget]
 impl Widget for UsageWidget {
