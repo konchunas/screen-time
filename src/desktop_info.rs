@@ -2,9 +2,9 @@ use gio::{AppInfoExt, DesktopAppInfo, DesktopAppInfoExt, Icon, ThemedIcon};
 /// Searches and provides info from dektop files
 use std::collections::HashMap;
 
+use crate::collected_app_info::COLLECTED_APPINFO;
 use crate::data::UsageEntry;
 use crate::time_helper::format_duration;
-use crate::collected_app_info::COLLECTED_APPINFO;
 use gtk::Cast;
 
 // categories which provide some useful insight of activity
@@ -24,9 +24,8 @@ static SPECIFIC_CATEGORIES: &[&'static str] = &[
 ];
 
 // not so important categories to use as a second frontier
-static SECONDARY_CATEGORIES: &[&'static str] = &[
-    "Settings", "Network", "Office", "System", "Utility",
-];
+static SECONDARY_CATEGORIES: &[&'static str] =
+    &["Settings", "Network", "Office", "System", "Utility"];
 
 pub struct AppInfo {
     pub icon: Option<Icon>,
@@ -49,7 +48,7 @@ pub fn load_as_apps(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<AppInfo> 
             icon,
         });
     }
-    return infos;
+    infos
 }
 
 pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<AppInfo> {
@@ -74,7 +73,7 @@ pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<App
 
     categories_usage.sort_unstable_by(|a, b| b.time.cmp(&a.time));
 
-    let sorted_category_usage_info = categories_usage
+    categories_usage
         .into_iter()
         .map(|entry| AppInfo {
             icon: get_category_icon(&entry.name),
@@ -82,9 +81,7 @@ pub fn load_as_categories(entries: Vec<UsageEntry>, total_usage: f64) -> Vec<App
             fraction: entry.time as f64 / total_usage,
             duration: format_duration(entry.time),
         })
-        .collect();
-
-    sorted_category_usage_info
+        .collect()
 }
 
 fn get_desktop_app_info(class_name: &str) -> Option<DesktopAppInfo> {

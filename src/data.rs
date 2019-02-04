@@ -7,8 +7,6 @@ use std::path::PathBuf;
 
 use chrono::Local;
 
-use std::io::{Error as IoError, ErrorKind as IoErrorKind};
-
 pub struct Frame {
     name: String,
     start: i64,
@@ -73,7 +71,7 @@ pub fn load_from_prev_days(day_count: i64) -> Result<Vec<Frame>, Error> {
         let mut day_frames = load_frames(&filepath).map_err(Error::IoError)?;
         frames.append(&mut day_frames);
     }
-    return Ok(frames);
+    Ok(frames)
 }
 
 pub fn load_frames(path: &PathBuf) -> std::io::Result<Vec<Frame>> {
@@ -141,7 +139,7 @@ pub fn calculate_usage(frames: Vec<Frame>) -> Vec<UsageEntry> {
         .collect();
 
     entries.sort_unstable_by(|a, b| b.time.cmp(&a.time));
-    return entries;
+    entries
 }
 
 pub fn get_earliest_and_latest(frames: &Vec<Frame>) -> (i64, i64) {
