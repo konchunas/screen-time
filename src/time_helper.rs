@@ -1,13 +1,18 @@
-use chrono::{NaiveDateTime, Timelike, Local, TimeZone};
+use chrono::{NaiveDateTime, Datelike, Timelike, Local, TimeZone, Duration};
 
 pub fn format_duration(time: i64) -> String {
-    let date_time = NaiveDateTime::from_timestamp(time, 0);
-    let time = date_time.time();
-    let time_str = match time.hour() > 0 {
-        true => time.format("%_Hh %_Mm").to_string(),
-        false => match time.minute() > 0 {
-            true => time.format("%_Mm").to_string(),
-            false => time.format("%_Ss").to_string(),
+    let duration = Duration::seconds(time);
+    let hours = duration.num_hours();
+    let minutes_duration = duration - Duration::hours(hours);
+    let minutes = minutes_duration.num_minutes();
+    let seconds_duration = minutes_duration - Duration::minutes(minutes);
+    let seconds = seconds_duration.num_seconds();
+
+    let time_str = match hours > 0 {
+        true => format!("{}h {}m", hours, minutes),
+        false => match  minutes > 0 {
+            true => format!("{}m", minutes),
+            false => format!("{}s", seconds)
         }
     };
 
